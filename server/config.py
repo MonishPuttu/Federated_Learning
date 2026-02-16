@@ -1,0 +1,2 @@
+NUM_CLIENTS = 3
+SIMULATED_DELAY = 1.0   # seconds

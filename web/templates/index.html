@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Federated Learning 3D Network</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            background: #0b0f1a;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #network {
+            width: 50%;
+            height: 100%;
+            position: relative;
+        }
+
+        #charts {
+            width: 50%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .chart-box {
+            height: 48%;
+            margin-bottom: 4%;
+        }
+
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="container">
+
+    <div id="network">
+        <div id="info">
+            <h2>Federated Learning 3D Network</h2>
+            <div id="metrics"></div>
+        </div>
+    </div>
+
+    <div id="charts">
+        <div id="accuracyChart" class="chart-box"></div>
+        <div id="sizeChart" class="chart-box"></div>
+    </div>
+
+</div>
+
+<script src="/static/js/main.js"></script>
+
+</body>
+</html>
