@@ -66,13 +66,15 @@ function createNodes() {
     ctx.shadowColor = "rgba(0,0,0,0.1)";
     ctx.shadowBlur = 4;
 
-    ctx.fillText(label, 80, 80);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, canvas.width / 2, canvas.height / 2);
 
     const textureLabel = new THREE.CanvasTexture(canvas);
     const materialLabel = new THREE.SpriteMaterial({ map: textureLabel });
     const labelSprite = new THREE.Sprite(materialLabel);
     labelSprite.scale.set(6, 1.5, 1);
-    labelSprite.position.set(x, y - 3, 0);
+    labelSprite.position.set(x, y - 2, 0);
     scene.add(labelSprite);
 
     return sprite;
