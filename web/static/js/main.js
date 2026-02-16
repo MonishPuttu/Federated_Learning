@@ -2,10 +2,10 @@ let scene, camera, renderer;
 let clients = [];
 let aggregator, globalServer;
 let packets = [];
-let lines = [];
-
 let accuracyHistory = [];
+
 let simulationRunning = false;
+let phaseText = "";
 
 init();
 animate();
@@ -15,6 +15,7 @@ animate();
 ================================= */
 function init() {
   scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xffffff);
 
   camera = new THREE.PerspectiveCamera(
     60,
@@ -24,7 +25,7 @@ function init() {
     1000,
   );
 
-  camera.position.set(0, 0, 20);
+  camera.position.set(0, 0, 22);
   camera.lookAt(0, 0, 0);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -39,11 +40,11 @@ function init() {
 
   document
     .getElementById("startBtn")
-    .addEventListener("click", runFederatedRound);
+    .addEventListener("click", runFederatedRounds);
 }
 
 /* ===============================
-   CREATE PNG SPRITES + LABELS
+   CREATE SPRITES + LABELS
 ================================= */
 function createNodes() {
   const loader = new THREE.TextureLoader();
@@ -56,17 +57,21 @@ function createNodes() {
     sprite.position.set(x, y, 0);
     scene.add(sprite);
 
-    // Add label below icon
     const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    context.font = "Bold 40px Arial";
-    context.fillStyle = "white";
-    context.fillText(label, 20, 50);
+    canvas.width = 512;
+    canvas.height = 128;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#333333";
+    ctx.font = "bold 40px Arial";
+    ctx.shadowColor = "rgba(0,0,0,0.1)";
+    ctx.shadowBlur = 4;
+
+    ctx.fillText(label, 80, 80);
 
     const textureLabel = new THREE.CanvasTexture(canvas);
     const materialLabel = new THREE.SpriteMaterial({ map: textureLabel });
     const labelSprite = new THREE.Sprite(materialLabel);
-    labelSprite.scale.set(5, 1.5, 1);
+    labelSprite.scale.set(6, 1.5, 1);
     labelSprite.position.set(x, y - 3, 0);
     scene.add(labelSprite);
 
@@ -82,14 +87,10 @@ function createNodes() {
 }
 
 /* ===============================
-   CONNECTION LINES
-================================= */
-
-/* ===============================
-   PACKET
+   PACKET + TRAIL
 ================================= */
 function createPacket(start, end, color) {
-  const geometry = new THREE.SphereGeometry(0.25, 16, 16);
+  const geometry = new THREE.SphereGeometry(0.3, 16, 16);
   const material = new THREE.MeshBasicMaterial({ color: color });
 
   const packet = new THREE.Mesh(geometry, material);
@@ -99,6 +100,7 @@ function createPacket(start, end, color) {
     start: start.clone(),
     end: end.clone(),
     progress: 0,
+    trail: [],
   };
 
   scene.add(packet);
@@ -107,18 +109,29 @@ function createPacket(start, end, color) {
 
 function animatePackets() {
   packets.forEach((packet) => {
-    packet.userData.progress += 0.02;
+    packet.userData.progress += 0.01; // slower speed
 
     let t = packet.userData.progress;
 
     if (t >= 1) {
       scene.remove(packet);
     } else {
-      packet.position.lerpVectors(
-        packet.userData.start,
-        packet.userData.end,
-        t,
-      );
+      const newPos = new THREE.Vector3();
+      newPos.lerpVectors(packet.userData.start, packet.userData.end, t);
+      packet.position.copy(newPos);
+
+      // trail effect
+      const trailGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+      const trailMaterial = new THREE.MeshBasicMaterial({
+        color: packet.material.color,
+        transparent: true,
+        opacity: 0.5,
+      });
+      const trail = new THREE.Mesh(trailGeometry, trailMaterial);
+      trail.position.copy(newPos);
+      scene.add(trail);
+
+      setTimeout(() => scene.remove(trail), 600);
     }
   });
 
@@ -126,42 +139,64 @@ function animatePackets() {
 }
 
 /* ===============================
-   FEDERATED ROUND (PHASED)
+   RUN 5 ROUNDS PER CLICK
 ================================= */
-function runFederatedRound() {
+async function runFederatedRounds() {
   if (simulationRunning) return;
   simulationRunning = true;
 
-  fetch("http://127.0.0.1:5000/run_round", {
-    method: "POST",
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      updateCharts(data);
+  document.getElementById("startBtn").disabled = true;
 
-      // PHASE 1: Clients upload
-      clients.forEach((client) => {
-        createPacket(client.position, aggregator.position, 0x00ffff);
+  for (let i = 0; i < 5; i++) {
+    await fetch("http://127.0.0.1:5000/run_round", { method: "POST" })
+      .then((res) => res.json())
+      .then((data) => {
+        updateCharts(data);
+
+        phaseText = "Uploading";
+        updatePhase();
+        clients.forEach((client) => {
+          createPacket(client.position, aggregator.position, 0x007bff);
+        });
       });
 
-      setTimeout(() => {
-        // PHASE 2: Aggregator → Global
-        createPacket(aggregator.position, globalServer.position, 0xffaa00);
+    await delay(1500);
 
-        setTimeout(() => {
-          // PHASE 3: Global → Clients
-          clients.forEach((client) => {
-            createPacket(globalServer.position, client.position, 0x00ff00);
-          });
+    phaseText = "Aggregating";
+    updatePhase();
+    createPacket(aggregator.position, globalServer.position, 0xff6f00);
 
-          simulationRunning = false;
-        }, 1000);
-      }, 1000);
+    await delay(1500);
+
+    phaseText = "Broadcasting";
+    updatePhase();
+    clients.forEach((client) => {
+      createPacket(globalServer.position, client.position, 0x28a745);
     });
+
+    await delay(1800);
+  }
+
+  phaseText = "Idle";
+  updatePhase();
+
+  simulationRunning = false;
+  document.getElementById("startBtn").disabled = false;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /* ===============================
-   CHARTS
+   UPDATE PHASE TEXT
+================================= */
+function updatePhase() {
+  document.getElementById("phaseStatus").innerText = "Phase: " + phaseText;
+}
+
+/* ===============================
+   UPDATE CHARTS
 ================================= */
 function updateCharts(data) {
   if (data.accuracy.length > 0) {
@@ -174,14 +209,24 @@ function updateCharts(data) {
       {
         y: accuracyHistory,
         mode: "lines+markers",
-        line: { color: "cyan" },
+        line: { color: "#007bff" },
       },
     ],
     {
-      title: "Global Accuracy",
-      paper_bgcolor: "#0b0f1a",
-      plot_bgcolor: "#0b0f1a",
-      font: { color: "white" },
+      title: {
+        text: "Global Model Accuracy",
+        font: { size: 18 },
+      },
+      xaxis: {
+        title: "Federated Round",
+        showgrid: true,
+        zeroline: true,
+      },
+      yaxis: {
+        title: "Accuracy",
+        showgrid: true,
+        zeroline: true,
+      },
     },
   );
 
@@ -194,14 +239,24 @@ function updateCharts(data) {
         x: modelSizes,
         y: accuracyHistory,
         mode: "lines+markers",
-        line: { color: "lime" },
+        line: { color: "#28a745" },
       },
     ],
     {
-      title: "Model Size vs Accuracy",
-      paper_bgcolor: "#0b0f1a",
-      plot_bgcolor: "#0b0f1a",
-      font: { color: "white" },
+      title: {
+        text: "Model Size vs Accuracy",
+        font: { size: 18 },
+      },
+      xaxis: {
+        title: "Model Size (KB)",
+        showgrid: true,
+        zeroline: true,
+      },
+      yaxis: {
+        title: "Accuracy",
+        showgrid: true,
+        zeroline: true,
+      },
     },
   );
 

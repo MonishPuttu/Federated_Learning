@@ -9,9 +9,9 @@
     <style>
       body {
         margin: 0;
-        background: #0b0f1a;
-        color: white;
+        background: #f4f6f9;
         font-family: Arial, sans-serif;
+        color: #222;
       }
 
       #container {
@@ -19,57 +19,105 @@
         height: 100vh;
       }
 
+      /* LEFT SIDE */
       #network {
         width: 50%;
         height: 100%;
-        position: relative;
-      }
-
-      #charts {
-        width: 50%;
-        padding: 20px;
-        box-sizing: border-box;
-      }
-
-      .chart-box {
-        height: 48%;
-        margin-bottom: 4%;
+        background: #ffffff;
+        border-right: 1px solid #e0e0e0;
       }
 
       #info {
         position: absolute;
-        top: 10px;
-        left: 10px;
+        top: 20px;
+        left: 20px;
         z-index: 10;
+      }
+
+      #info h2 {
+        color: #007bff;
+        margin-bottom: 10px;
+      }
+
+      #metrics {
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+
+      #startBtn {
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      #startBtn:disabled {
+        background: #999;
+        cursor: not-allowed;
+      }
+
+      #phaseStatus {
+        margin-top: 8px;
+        font-weight: bold;
+        color: #444;
+      }
+
+      /* RIGHT SIDE */
+      #charts {
+        width: 50%;
+        padding: 20px;
+        box-sizing: border-box;
+        background: #ffffff;
+      }
+
+      .chart-box {
+        height: 45%;
+        margin-bottom: 5%;
+      }
+
+      .chart-description {
+        font-size: 14px;
+        margin-bottom: 5px;
+        color: #555;
       }
     </style>
   </head>
 
   <body>
     <div id="container">
+      <!-- LEFT PANEL -->
       <div id="network">
         <div id="info">
-          <h2 style="color: #00d4ff">Federated Learning 3D Network</h2>
-          <div id="metrics"></div>
-          <button
-            id="startBtn"
-            style="
-              padding: 10px 20px;
-              background: #00aaff;
-              color: white;
-              border: none;
-              border-radius: 6px;
-              cursor: pointer;
-              margin-top: 10px;
-            "
-          >
-            Start Federated Round
-          </button>
+          <h2>Federated Learning 3D Network</h2>
+
+          <div id="metrics">
+            Round: 0 <br />
+            Accuracy: N/A
+          </div>
+
+          <button id="startBtn">Start Federated Round</button>
+
+          <!-- ✅ THIS IS WHERE PHASE STATUS GOES -->
+          <div id="phaseStatus">Phase: Idle</div>
         </div>
       </div>
 
+      <!-- RIGHT PANEL -->
       <div id="charts">
+        <div class="chart-description">
+          This graph shows how the global model accuracy evolves across
+          federated rounds.
+        </div>
         <div id="accuracyChart" class="chart-box"></div>
+
+        <div class="chart-description">
+          This graph visualizes the trade-off between model size and achieved
+          accuracy.
+        </div>
         <div id="sizeChart" class="chart-box"></div>
       </div>
     </div>
