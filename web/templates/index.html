@@ -1,69 +1,79 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>Federated Learning 3D Network</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 
     <style>
-        body {
-            margin: 0;
-            background: #0b0f1a;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
+      body {
+        margin: 0;
+        background: #0b0f1a;
+        color: white;
+        font-family: Arial, sans-serif;
+      }
 
-        #container {
-            display: flex;
-            height: 100vh;
-        }
+      #container {
+        display: flex;
+        height: 100vh;
+      }
 
-        #network {
-            width: 50%;
-            height: 100%;
-            position: relative;
-        }
+      #network {
+        width: 50%;
+        height: 100%;
+        position: relative;
+      }
 
-        #charts {
-            width: 50%;
-            padding: 20px;
-            box-sizing: border-box;
-        }
+      #charts {
+        width: 50%;
+        padding: 20px;
+        box-sizing: border-box;
+      }
 
-        .chart-box {
-            height: 48%;
-            margin-bottom: 4%;
-        }
+      .chart-box {
+        height: 48%;
+        margin-bottom: 4%;
+      }
 
-        #info {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 10;
-        }
+      #info {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+      }
     </style>
-</head>
+  </head>
 
-<body>
-
-<div id="container">
-
-    <div id="network">
+  <body>
+    <div id="container">
+      <div id="network">
         <div id="info">
-            <h2>Federated Learning 3D Network</h2>
-            <div id="metrics"></div>
+          <h2 style="color: #00d4ff">Federated Learning 3D Network</h2>
+          <div id="metrics"></div>
+          <button
+            id="startBtn"
+            style="
+              padding: 10px 20px;
+              background: #00aaff;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              margin-top: 10px;
+            "
+          >
+            Start Federated Round
+          </button>
         </div>
-    </div>
+      </div>
 
-    <div id="charts">
+      <div id="charts">
         <div id="accuracyChart" class="chart-box"></div>
         <div id="sizeChart" class="chart-box"></div>
+      </div>
     </div>
 
-</div>
-
-<script src="/static/js/main.js"></script>
-
-</body>
+    <script src="/static/js/main.js"></script>
+  </body>
 </html>

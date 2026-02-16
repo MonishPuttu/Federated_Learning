@@ -26,6 +26,22 @@ def update():
 
     return jsonify(response)
 
+@app.route("/run_round", methods=["POST"])
+def run_round():
+
+    # Simulate 3 client updates
+    for _ in range(3):
+        fl_server.receive_update(copy.deepcopy(fl_server.global_model))
+
+    aggregated = fl_server.aggregate()
+
+    return jsonify({
+        "success": True,
+        "round": fl_server.round,
+        "accuracy": fl_server.accuracy_history
+    })
+
+
 @app.route("/status", methods=["GET"])
 def status():
     return jsonify({
